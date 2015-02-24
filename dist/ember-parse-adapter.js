@@ -4,8 +4,8 @@ var EmberParseAdapter = {};
 EmberParseAdapter.Transforms = {};
 
 /*
-  Serializer to assure proper Parse-to-Ember encodings
-*/
+ * Serializer to assure proper Parse-to-Ember encodings
+ */
 EmberParseAdapter.Serializer = DS.RESTSerializer.extend({
 
   primaryKey: "objectId",
@@ -94,8 +94,8 @@ EmberParseAdapter.Serializer = DS.RESTSerializer.extend({
 
           // ember-data expects the link to be a string
           // The adapter findHasMany will parse it
-          hash.links = {};
-          hash.links[key] = JSON.stringify({type: relationship.type, key: key});
+          if (!hash.links) hash.links = {};
+          hash.links[key] = JSON.stringify({typeKey: relationship.type.typeKey, key: key});
         }
 
         if(options.array){
@@ -134,10 +134,14 @@ EmberParseAdapter.Serializer = DS.RESTSerializer.extend({
 
   serializeAttribute: function(snapshot, json, key, attribute) {
     // These are Parse reserved properties and we won't send them.
+    // removed_ and added_ are the workaround used to mark an object as
+    //  removed/added from/to a relation, and be able to send the
+    //  add/remove operations to Parse
     if( key === 'createdAt' ||
         key === 'updatedAt' ||
         key === 'emailVerified' ||
-        key === 'sessionToken' ){
+        key === 'sessionToken' ||
+        key === 'removed_' ){
       delete json[key];
     } else {
       this._super(snapshot, json, key, attribute);
@@ -146,23 +150,15 @@ EmberParseAdapter.Serializer = DS.RESTSerializer.extend({
 
   serializeBelongsTo: function(snapshot, json, relationship){
     var key = relationship.key;
-    var belongsTo = snapshot.belongsTo(key);
-    if(belongsTo){
-      // TODO: Perhaps this is working around a bug in Ember-Data? Why should
-      // promises be returned here.
-      if (belongsTo instanceof DS.PromiseObject) {
-        if (!belongsTo.attr('isFulfilled')) {
-          throw new Error("belongsTo values *must* be fulfilled before attempting to serialize them");
-        }
-        belongsTo = belongsTo.attr('content');
-      }
 
-      json[key] = {
-        "__type": "Pointer",
-        "className": this.parseClassName(belongsTo.constructor.typeKey),
-        "objectId": belongsTo.attr('id')
-      };
-    }
+    var belongsTo = snapshot.belongsTo(key);
+    var belongsToId = snapshot.belongsTo(key, { id: true });
+
+    json[key] = {
+      "__type": "Pointer",
+      "className": this.parseClassName(key),
+      "objectId": belongsToId
+    };
   },
 
   parseClassName: function(key) {
@@ -177,57 +173,74 @@ EmberParseAdapter.Serializer = DS.RESTSerializer.extend({
     var key = relationship.key;
     var hasMany = snapshot.hasMany(key);
     var options = relationship.options;
-    if(hasMany && hasMany.attr('length') > 0){
 
-      json[key] = { "objects": [] };
-
-      if(options.relation){
-        json[key].__op = "AddRelation";
+    // no objects to add or remove
+    if(Ember.isEmpty(hasMany)){
+      // Parse return a 400 bad request error if use an empty array to represent an empty relation
+      if (!options.relation) {
+        json[key] = [];
       }
+      return;
+    }
 
-      if(options.array){
-        json[key].__op = "AddUnique";
-      }
+    // create the operations only if there are some elements to add
+    var addOperation, removeOperation;
+    var parseClassName = this.parseClassName(relationship.type.typeKey);
 
-      var _this = this;
+    hasMany.forEach(function(child){
+      // the element is marked as removed
+      if (('removed_' in child.attributes()) && child.attr('removed_')) {
+        child.record.set('removed_', false);
+        if (Ember.isEmpty(removeOperation)) {
+          removeOperation = {
+            __op: (options.array ? "Remove" : "RemoveRelation"),
+            objects: []
+          };
+        }
 
-      hasMany.forEach(function(child){
-        json[key].objects.push({
+        removeOperation.objects.push({
           "__type": "Pointer",
-          "className": _this.parseClassName(child.constructor.typeKey),
-          "objectId": child.attr('id')
+          "className": parseClassName,
+          "objectId": child.id
         });
-      });
+      }
 
-      if(hasMany._deletedItems && hasMany._deletedItems.length){
-        if(options.relation){
-          var addOperation = json[key];
-          var deleteOperation = { "__op": "RemoveRelation", "objects": [] };
-          hasMany._deletedItems.forEach(function(item){
-            deleteOperation.objects.push({
-              "__type": "Pointer",
-              "className": item.type,
-              "objectId": item.id
-            });
-          });
-          json[key] = { "__op": "Batch", "ops": [addOperation, deleteOperation] };
+      // the element must be added
+      else {
+        if (Ember.isEmpty(addOperation)) {
+          addOperation = {
+            __op: (options.relation ? "AddRelation" : "AddUnique"),
+            objects: []
+          };
         }
-        if(options.array){
-          json[key].deleteds = { "__op": "Remove", "objects": [] };
-          hasMany._deletedItems.forEach(function(item){
-            json[key].deleteds.objects.push({
-              "__type": "Pointer",
-              "className": item.type,
-              "objectId": item.id
-            });
-          });
-        }
+
+        addOperation.objects.push({
+          "__type": "Pointer",
+          "className": parseClassName,
+          "objectId": child.id
+        });
+      }
+    });
+
+    if (options.relation) {
+      if (addOperation && removeOperation) {
+        json[key] = { "__op": "Batch", "ops": [addOperation, removeOperation] };
+      } else if (addOperation || removeOperation) {
+        json[key] = addOperation || removeOperation;
       }
     } else {
-      json[key] = [];
+      if (addOperation) {
+        json[key] = addOperation;
+      }
+      if (removeOperation) {
+        if (json[key]) {
+          json[key].deleteds = removeOperation;
+        } else {
+          json[key] = {deleteds: removeOperation};
+        }
+      }
     }
   }
-
 });
 
 /**
@@ -277,7 +290,10 @@ EmberParseAdapter.Adapter = DS.RESTAdapter.extend({
   createRecord: function(store, type, record) {
     var data = {};
     var serializer = store.serializerFor(type.typeKey);
-    serializer.serializeIntoHash(data, type, record, { includeId: true });
+
+    var snapshot = record._createSnapshot();
+    serializer.serializeIntoHash(data, type, snapshot, { includeId: true });
+
     var adapter = this;
     return new Ember.RSVP.Promise(function(resolve, reject){
       adapter.ajax(adapter.buildURL(type.typeKey), "POST", { data: data }).then(
@@ -302,7 +318,10 @@ EmberParseAdapter.Adapter = DS.RESTAdapter.extend({
     var deleteds = {};
     var sendDeletes = false;
     var serializer = store.serializerFor(type.typeKey);
-    serializer.serializeIntoHash(data, type, record);
+
+    var snapshot = record._createSnapshot();
+    serializer.serializeIntoHash(data, type, snapshot, { includeId: true });
+
     var id = record.get('id');
     var adapter = this;
 
@@ -364,7 +383,7 @@ EmberParseAdapter.Adapter = DS.RESTAdapter.extend({
    */
   findHasMany: function(store, record, relatedInfo){    
     var relatedInfo_ = JSON.parse(relatedInfo);
-    
+
     var query = {
       where: {
         "$relatedTo": {
@@ -373,13 +392,13 @@ EmberParseAdapter.Adapter = DS.RESTAdapter.extend({
             "className": this.parseClassName(record.typeKey || record.constructor.typeKey),
             "objectId": record.get('id')
           },
-          key: relatedInfo.key
+          key: relatedInfo_.key
         }
       }
     };
     // the request is to the related type and not the type for the record.
     // the query is where there is a pointer to this record.
-    return this.ajax(this.buildURL(relatedInfo.type.typeKey), "GET", { data: query });
+    return this.ajax(this.buildURL(relatedInfo_.typeKey), "GET", { data: query });
   },
 
   /**
@@ -398,8 +417,20 @@ EmberParseAdapter.Adapter = DS.RESTAdapter.extend({
    *     });
    */
   findQuery: function (store, type, query) {
-    if (query.where && Ember.typeOf(query.where) !== 'string') {
-      query.where = JSON.stringify(query.where);
+    if (!query.where) {
+      // eg:
+      //  - call: store.find("person", {name: "John"});
+      //  - call: findQuery(store, type, {name: "John"});
+      //  - query = {name: "John"}
+      //  - set: query = { where: '{"name":"John"}' }
+      var where = JSON.stringify(query);
+      query = {};
+      query.where = where;
+
+    } else {
+      if (Ember.typeOf(query.where) !== 'string') {
+        query.where = JSON.stringify(query.where);
+      }
     }
 
     // Pass to _super()
