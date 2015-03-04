@@ -44,7 +44,7 @@ EmberParseAdapter.Serializer = DS.RESTSerializer.extend({
    */
   extractMeta: function(store, type, payload) {
     if (payload && payload.count) {
-      store.metaForType(type, {count: payload.count});
+      store.setMetadataFor(type, {count: payload.count});
       delete payload.count;
     }
   },
@@ -95,7 +95,7 @@ EmberParseAdapter.Serializer = DS.RESTSerializer.extend({
           // ember-data expects the link to be a string
           // The adapter findHasMany will parse it
           if (!hash.links) hash.links = {};
-          hash.links[key] = JSON.stringify({typeKey: relationship.type.typeKey, key: key});
+          hash.links[key] = JSON.stringify({typeKey: relationship.type.typeKey, key: key, load: (Ember.isNone(options.load)) || (options.load)});
         }
 
         if(options.array){
@@ -383,6 +383,10 @@ EmberParseAdapter.Adapter = DS.RESTAdapter.extend({
    */
   findHasMany: function(store, record, relatedInfo){    
     var relatedInfo_ = JSON.parse(relatedInfo);
+
+    if (!relatedInfo_.load) {
+      return Ember.RSVP.Promise.resolve({results: ''});
+    }
 
     var query = {
       where: {
