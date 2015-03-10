@@ -268,6 +268,8 @@ EmberParseAdapter.Adapter = DS.RESTAdapter.extend({
       return "users";
     } else if ("login" === type) {
       return "login";
+    } else if ("requestPasswordReset" === type) {
+      return "requestPasswordReset";
     } else if ("function" === type) {
       return "functions";
     } else {
@@ -485,8 +487,9 @@ EmberParseAdapter.ParseUser.reopenClass({
     });
   },
 
-  requestPasswordReset: function(email){
-    var adapter = this.get('store').adapterFor(this);
+  requestPasswordReset: function(store, email){
+    var model = this;
+    var adapter = store.adapterFor(model);
     var data = { email: email };
     return adapter.ajax(adapter.buildURL("requestPasswordReset"), "POST", {data:data})['catch'](
       function(response){
