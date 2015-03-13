@@ -157,7 +157,7 @@ EmberParseAdapter.Serializer = DS.RESTSerializer.extend({
     if (!Ember.isEmpty(belongsToId)) {
       json[key] = {
         "__type": "Pointer",
-        "className": this.parseClassName(key),
+        "className": this.parseClassName(belongsTo.typeKey),
         "objectId": belongsToId
       };
     }
