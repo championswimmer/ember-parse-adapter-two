@@ -84,6 +84,7 @@ EmberParseAdapter.Serializer = DS.RESTSerializer.extend({
         } else {
           // When items are objects we need to clean them and add them to the store.
           // This occurs when request was made with the include query param.
+          // TODO: should be possible to call super_.normalize instead but it does not work. Why ?_?
           delete hash[key].__type;
           delete hash[key].className;
           hash[key].id = hash[key].objectId;
@@ -91,6 +92,8 @@ EmberParseAdapter.Serializer = DS.RESTSerializer.extend({
           hash[key].type = relationship.type;
           serializer.normalizeAttributes(relationship.type, hash[key]);
           serializer.normalizeRelationships(relationship.type, hash[key]);
+          serializer.normalizeUsingDeclaredMapping(relationship.type, hash[key]);
+          serializer.applyTransforms(relationship.type, hash[key]);
           store.push(relationship.type, hash[key]);
         }
       }
@@ -124,6 +127,7 @@ EmberParseAdapter.Serializer = DS.RESTSerializer.extend({
               } else {
                 // When items are objects we need to clean them and add them to the store.
                 // This occurs when request was made with the include query param.
+                // TODO: should be possible to call super_.normalize instead but it does not work. Why ?_?
                 delete item.__type;
                 delete item.className;
                 item.id = item.objectId;
@@ -131,6 +135,8 @@ EmberParseAdapter.Serializer = DS.RESTSerializer.extend({
                 item.type = relationship.type;
                 serializer.normalizeAttributes(relationship.type, item);
                 serializer.normalizeRelationships(relationship.type, item);
+                serializer.normalizeUsingDeclaredMapping(relationship.type, item);
+                serializer.applyTransforms(relationship.type, item);
                 store.push(relationship.type, item);
               }
             });
