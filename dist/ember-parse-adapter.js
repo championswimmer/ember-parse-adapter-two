@@ -91,6 +91,7 @@ EmberParseAdapter.Serializer = DS.RESTSerializer.extend({
             serializer.normalize(relationship.type, hash[key]);
             store.push(relationship.type, hash[key]);
           } else {
+            // Unknown or {"__op": "Delete"} due to a previous delete operation 
             delete hash[key];
           }
         }
