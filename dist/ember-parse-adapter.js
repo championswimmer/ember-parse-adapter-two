@@ -125,19 +125,23 @@ EmberParseAdapter.Serializer = DS.RESTSerializer.extend({
               if(item.__type === "Pointer"){
                 items[index] = item.objectId;
               } else {
-                // When items are objects we need to clean them and add them to the store.
-                // This occurs when request was made with the include query param.
-                // TODO: should be possible to call super_.normalize instead but it does not work. Why ?_?
-                delete item.__type;
-                delete item.className;
-                item.id = item.objectId;
-                delete item.objectId;
-                item.type = relationship.type;
-                serializer.normalizeAttributes(relationship.type, item);
-                serializer.normalizeRelationships(relationship.type, item);
-                serializer.normalizeUsingDeclaredMapping(relationship.type, item);
-                serializer.applyTransforms(relationship.type, item);
-                store.push(relationship.type, item);
+                if(hash[key].__type === "Object"){
+                  // When items are objects we need to clean them and add them to the store.
+                  // This occurs when request was made with the include query param.
+                  // TODO: should be possible to call super_.normalize instead but it does not work. Why ?_?
+                  delete item.__type;
+                  delete item.className;
+                  item.id = item.objectId;
+                  delete item.objectId;
+                  item.type = relationship.type;
+                  serializer.normalizeAttributes(relationship.type, item);
+                  serializer.normalizeRelationships(relationship.type, item);
+                  serializer.normalizeUsingDeclaredMapping(relationship.type, item);
+                  serializer.applyTransforms(relationship.type, item);
+                  store.push(relationship.type, item);
+                } else {
+                  delete hash[key];
+                }
               }
             });
           }
@@ -181,6 +185,8 @@ EmberParseAdapter.Serializer = DS.RESTSerializer.extend({
         "className": this.parseClassName(belongsTo.typeKey),
         "objectId": belongsToId
       };
+    } else {
+      json[key] = {"__op": "Delete"};
     }
   },
 
