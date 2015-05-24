@@ -180,7 +180,7 @@ EmberParseAdapter.Serializer = DS.RESTSerializer.extend({
   },
 
   parseClassName: function(key) {
-    if (key === "parseUser") {
+    if (key === "parse-user") {
       return "_User";
     } else {
       return Ember.String.capitalize(Ember.String.camelize(key));
@@ -385,7 +385,7 @@ EmberParseAdapter.Adapter = DS.RESTAdapter.extend({
   },
 
   parseClassName: function(key) {
-    if (key === "parseUser") {
+    if (key === "parse-user") {
       return "_User";
     } else {
       return Ember.String.capitalize(Ember.String.camelize(key));
