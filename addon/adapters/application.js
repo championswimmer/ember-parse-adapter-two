@@ -5,40 +5,30 @@ export default DS.RESTAdapter.extend({
 
   defaultSerializer: '-parse',
 
-  init: function(){
+  init: function() {
     this._super();
-
-    this.set( 'headers', {
-      'X-Parse-Application-Id' : Ember.get( this, 'applicationId' ),
-      'X-Parse-REST-API-Key'   : Ember.get( this, 'restApiId' )
+    this.set('headers', {
+      'X-Parse-Application-Id' : Ember.get(this, 'applicationId'),
+      'X-Parse-REST-API-Key'   : Ember.get(this, 'restApiId')
     });
   },
 
   host: 'https://api.parse.com',
-
   namespace: '1',
 
-  classesPath: 'classes',
-
-  pathForType: function( type ) {
-    if ( 'parseUser' === type || 'parse-user' === type ) {
+  pathForType: function(type) {
+    if ('parseUser' === type || 'parse-user' === type) {
       return 'users';
-    } 
-    else if ( 'login' === type ) {
-      return 'login';
-    } 
-    else if ( 'function' === type ) {
-      return 'functions';
-    } 
-    else {
-      return this.classesPath + '/' + this.parsePathForType( type );
     }
-  },
-
-  // Using TitleStyle is recommended by Parse
-  // @TODO: test
-  parsePathForType: function( type ) {
-    return Ember.String.capitalize( Ember.String.camelize( type ) );
+    else if ('login' === type) {
+      return 'login';
+    }
+    else if ('function' === type) {
+      return 'functions';
+    }
+    else {
+      return 'classes/' + Ember.String.capitalize(Ember.String.camelize(type));
+    }
   },
 
   /**
@@ -62,7 +52,7 @@ export default DS.RESTAdapter.extend({
         },
         function( reason ) {
           reject( reason.responseJSON );
-          }
+        }
       );
     });
   },
@@ -82,12 +72,12 @@ export default DS.RESTAdapter.extend({
       adapter     = this;
 
     serializer.serializeIntoHash(data, type, snapshot, { includeId: true });
-    
+
     // password cannot be empty
     if( !data.password && (type.modelName === 'parseUser' || type.modelName === 'parse-user') ) {
       delete data.password;
     }
-    
+
     // username cannot be empty
     if( !data.username && (type.modelName === 'parseUser' || type.modelName === 'parse-user') ) {
       delete data.username;
@@ -156,9 +146,6 @@ export default DS.RESTAdapter.extend({
           }
         }
     };
-    
-    
-
     // the request is to the related type and not the type for the record.
     // the query is where there is a pointer to this record.
     return this.ajax( this.buildURL( relationship.type ), "GET", { data: query } );
@@ -183,7 +170,6 @@ export default DS.RESTAdapter.extend({
     if ( query.where && 'string' !== Ember.typeOf( query.where ) ) {
       query.where = JSON.stringify( query.where );
     }
-
     // Pass to _super()
     return this._super( store, type, query );
   },
