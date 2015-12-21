@@ -1,18 +1,15 @@
 {
   "name": "ember-parse-adapter",
-  "version": "0.5.2",
-  "homepage": "https://github.com/clintjhill/ember-parse-adapter",
-  "description": "Ember Data Adapter for Parse",
-  "main": "dist/ember-parse-adapter.js",
-  "license": "MIT",
-  "ignore": [
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "test",
-    "tests"
-  ],
   "dependencies": {
-    "ember-data": "~1.0.0-beta.18"
+    "jquery": "^1.11.1",
+    "ember": "1.13.10",
+    "ember-data": "1.13.11",
+    "loader.js": "ember-cli/loader.js#3.3.0",
+    "ember-cli-shims": "ember-cli/ember-cli-shims#0.0.5",
+    "ember-cli-test-loader": "ember-cli-test-loader#0.2.0",
+    "ember-load-initializers": "ember-cli/ember-load-initializers#0.1.6",
+    "ember-qunit": "0.4.10",
+    "ember-qunit-notifications": "0.0.7",
+    "qunit": "~1.19.0"
   }
 }
