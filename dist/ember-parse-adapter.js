@@ -456,10 +456,12 @@ EmberParseAdapter.Adapter = DS.RESTAdapter.extend({
     return this._super(store, type, query);
   },
 
-  sessionToken: Ember.computed('headers.X-Parse-Session-Token', function(key, value){
-    if (arguments.length < 2) {
+  sessionToken: Ember.computed('headers.X-Parse-Session-Token', {
+    get: function() {
       return this.get('headers.X-Parse-Session-Token');
-    } else {
+    },
+
+    set: function(key, value) {
       this.set('headers.X-Parse-Session-Token', value);
       return value;
     }
