@@ -41,6 +41,23 @@ export default DS.RESTAdapter.extend({
     }
   },
 
+  normalizeErrorResponse: function(status, headers, payload) {
+    if (payload && typeof payload === "object") {
+      if (payload.errors) {
+        return payload.errors;
+      }
+      else {
+        return [payload];
+      }
+    }
+    
+    return [{
+      status: "" + status,
+      title: "The backend responded with an error",
+      detail: "" + payload
+    }];
+  },
+
   /**
   * Because Parse doesn't return a full set of properties on the
   * responses to updates, we want to perform a merge of the response
@@ -60,7 +77,7 @@ export default DS.RESTAdapter.extend({
           resolve( Ember.merge( data, json ) );
         },
         function( reason ) {
-          reject( reason.responseJSON );
+          reject( reason.errors[0] );
         }
       );
     });
@@ -110,12 +127,12 @@ export default DS.RESTAdapter.extend({
                 resolve( Ember.merge( data, updates ) );
               },
               function( reason ) {
-                reject( 'Failed to save parent in relation: ' + reason.response.JSON );
+                reject( "Failed to save parent in relation: " + reason.errors[0] );
               }
             );
           },
           function( reason ) {
-            reject( reason.responseJSON );
+            reject( reason.errors[0] );
           }
         );
 
@@ -126,7 +143,7 @@ export default DS.RESTAdapter.extend({
             resolve( Ember.merge( data, json ) );
           },
           function( reason ) {
-            reject( reason.responseJSON );
+            reject( reason.errors[0] );
           }
         );
       }

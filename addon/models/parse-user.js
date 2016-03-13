@@ -30,7 +30,7 @@ ParseUser.reopenClass({
 
     return adapter.ajax(adapter.buildURL("requestPasswordReset"), "POST", {data:data} )["catch"] (
       function(response) {
-        return Ember.RSVP.reject(response.responseJSON);
+        return Ember.RSVP.reject(response.errors[0]);
       }
     );
   },
@@ -51,7 +51,7 @@ ParseUser.reopenClass({
         return record;
       },
       function(response) {
-        return Ember.RSVP.reject(response.responseJSON);
+        return Ember.RSVP.reject(response.errors[0]);
       }
     );
   },
@@ -76,7 +76,7 @@ ParseUser.reopenClass({
         return record;
       },
       function(response) {
-        return Ember.RSVP.reject(response.responseJSON);
+        return Ember.RSVP.reject(response.errors[0]);
       }
     );
   }
