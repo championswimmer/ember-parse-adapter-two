@@ -11,6 +11,8 @@ import ParseUser from "../models/parse-user";
  */
 export default function( container, app ) {
   Adapter.reopen({
+    host            : app.get( "parseUrl" ),
+    namespace       : app.get( "parseNamespace" ),
     applicationId   : app.get( "applicationId" ),
     restApiId       : app.get( "restApiId" )
   });
