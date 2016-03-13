@@ -57,8 +57,7 @@ export default DS.RESTAdapter.extend({
     return new Ember.RSVP.Promise( function( resolve, reject ) {
       adapter.ajax( adapter.buildURL( type.modelName ), "POST", { data: data } ).then(
         function( json ) {
-          var completed = Ember.merge( data, json );
-          resolve( completed );
+          resolve( Ember.merge( data, json ) );
         },
         function( reason ) {
           reject( reason.responseJSON );
