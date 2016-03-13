@@ -12,6 +12,10 @@ export default DS.RESTSerializer.extend({
     var namespacedPayload = {};
     namespacedPayload[ Ember.String.pluralize( primaryType.modelName ) ] = payload.results;
 
+    if ( payload.hasOwnProperty("count") ) {
+      namespacedPayload.meta = { count: payload.count }
+    }
+
     return this._super( store, primaryType, namespacedPayload );
   },
 
@@ -37,17 +41,6 @@ export default DS.RESTSerializer.extend({
     }
 
     return this._super( store, primaryModelClass, payload, id, requestType );
-  },
-
-  /**
-  * Extracts count from the payload so that you can get the total number
-  * of records in Parse if you're using skip and limit.
-  */
-  extractMeta: function( store, type, payload ) {
-    if ( payload && payload.count ) {
-      delete payload.count;
-      return { count: payload.count };
-    }
   },
 
   /**
