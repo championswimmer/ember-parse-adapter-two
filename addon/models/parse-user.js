@@ -56,6 +56,37 @@ ParseUser.reopenClass({
     );
   },
 
+  logout: function(store) {
+    var adapter = store.adapterFor("parse-user");
+
+    return adapter.ajax(adapter.buildURL("logout"), "POST")["catch"] (
+      function(response) {
+        return Ember.RSVP.reject(response.errors[0]);
+      }
+    );
+  },
+
+  me: function(store) {
+    var model      = this,
+        adapter    = store.adapterFor("parse-user"),
+        serializer = store.serializerFor("parse-user");
+
+    if(Ember.isEmpty(this.modelName)) {
+      throw new Error("Parse me must be called on a model fetched via store.modelFor");
+    }
+
+    return adapter.ajax(adapter.buildURL("me"), "GET").then(
+      function(response) {
+        var serialized = serializer.normalize(model, response),
+            record = store.push(serialized);
+        return record;
+    },
+      function(response) {
+        return Ember.RSVP.reject(response.errors[0]);
+      }
+    );
+  },
+
   signup: function(store, data) {
     var model      = this,
         adapter    = store.adapterFor("parse-user"),
