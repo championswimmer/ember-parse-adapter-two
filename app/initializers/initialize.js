@@ -1,9 +1,9 @@
-import initializer from 'ember-parse-adapter/initializers/initialize';
+import initializer from "ember-parse-adapter/initializers/initialize";
 
 export default {
-  name: 'ember-parse-adapter',
+  name: "ember-parse-adapter",
 
-  after: 'ember-data',
+  after: "ember-data",
 
   initialize: initializer
 };
