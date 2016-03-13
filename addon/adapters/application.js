@@ -13,15 +13,25 @@ export default DS.RESTAdapter.extend({
     });
   },
 
-  host: 'https://api.parse.com',
-  namespace: '1',
+  host: "https://api.parse.com",
+
+  namespace: "1",
 
   pathForType: function(type) {
     if ("parseUser" === type || "parse-user" === type) {
       return "users";
     }
+    else if ("requestPasswordReset" === type) {
+      return "requestPasswordReset";
+    }
     else if ("login" === type) {
       return "login";
+    }
+    else if ("logout" === type) {
+      return "logout";
+    }
+    else if ("me" === type) {
+      return "users/me";
     }
     else if ("function" === type) {
       return "functions";
