@@ -1,17 +1,17 @@
-import Ember from 'ember';
-import DS from 'ember-data';
+import Ember from "ember";
+import DS from "ember-data";
 
 export default DS.RESTSerializer.extend({
-  
+
   // this will be removed in 2.0
   isNewSerializerAPI: true,
 
-  primaryKey: 'objectId',
+  primaryKey: "objectId",
 
   normalizeArrayResponse: function( store, primaryType, payload ) {
     var namespacedPayload = {};
     namespacedPayload[ Ember.String.pluralize( primaryType.modelName ) ] = payload.results;
-    
+
     return this._super( store, primaryType, namespacedPayload );
   },
 
@@ -32,8 +32,8 @@ export default DS.RESTSerializer.extend({
   * record ID we are dealing with (using the primaryKey).
   */
   normalizeResponse: function( store, primaryModelClass, payload, id, requestType ) {
-    if( id !== null && ( 'updateRecord' === requestType || 'deleteRecord' === requestType ) ) {
-      payload[ this.get( 'primaryKey' ) ] = id;
+    if( id !== null && ( "updateRecord" === requestType || "deleteRecord" === requestType ) ) {
+      payload[ this.get( "primaryKey" ) ] = id;
     }
 
     return this._super( store, primaryModelClass, payload, id, requestType );
@@ -56,14 +56,14 @@ export default DS.RESTSerializer.extend({
   */
   normalizeAttributes: function( type, hash ) {
     type.eachAttribute( function( key, meta ) {
-      if ( 'date' === meta.type && 'object' === Ember.typeOf( hash[key] ) && hash[key].iso ) {
+      if ( "date" === meta.type && "object" === Ember.typeOf( hash[key] ) && hash[key].iso ) {
         hash[key] = hash[key].iso; //new Date(hash[key].iso).toISOString();
       }
     });
 
     this._super( type, hash );
   },
-  
+
   extractRelationship: function(relationshipModelName, relationshipHash) {
     if (Ember.isNone(relationshipHash)) { return null; }
     /*
@@ -81,25 +81,25 @@ export default DS.RESTSerializer.extend({
       }
       return relationshipHash;
     }
-    
+
     // https://github.com/emberjs/data/blob/v2.0.0/packages/ember-data/lib/system/coerce-id.js
-    var coerceId = relationshipHash == null || relationshipHash === '' ? null : relationshipHash+'';
-    
+    var coerceId = relationshipHash == null || relationshipHash === "" ? null : relationshipHash+"";
+
     return { id: coerceId, type: relationshipModelName };
   },
-  
-  extractRelationships: function(modelClass, resourceHash) {    
+
+  extractRelationships: function(modelClass, resourceHash) {
     let relationships = {};
 
     modelClass.eachRelationship(function(key, relationshipMeta) {
       let relationship = null;
-      let relationshipKey = this.keyForRelationship(key, relationshipMeta.kind, 'deserialize');
-      
+      let relationshipKey = this.keyForRelationship(key, relationshipMeta.kind, "deserialize");
+
       if (resourceHash.hasOwnProperty(relationshipKey)) {
         let data = null;
         let relationshipHash = resourceHash[relationshipKey];
-        
-        if (relationshipMeta.kind === 'belongsTo') {
+
+        if (relationshipMeta.kind === "belongsTo") {
           data = this.extractRelationship(relationshipMeta.type, relationshipHash);
         } 
         else if (relationshipHash && relationshipMeta.kind === 'hasMany') {
@@ -148,19 +148,19 @@ export default DS.RESTSerializer.extend({
   serializeBelongsTo: function(snapshot, json, relationship) {
     var key         = relationship.key,
         belongsToId = snapshot.belongsTo(key, { id: true });
-    
+
     if (belongsToId) {
       json[key] = {
-        '__type'    : 'Pointer',
-        'className' : this.parseClassName(relationship.type),
-        'objectId'  : belongsToId
+        "__type"    : "Pointer",
+        "className" : this.parseClassName(relationship.type),
+        "objectId"  : belongsToId
       };
     }
   },
 
   parseClassName: function(key) {
-    if ('parseUser' === key || 'parse-user' === key) {
-      return '_User';
+    if ("parseUser" === key || "parse-user" === key) {
+      return "_User";
     } else {
       return Ember.String.capitalize(Ember.String.camelize(key));
     }
@@ -172,8 +172,8 @@ export default DS.RESTSerializer.extend({
       options = relationship.options,
       _this   = this;
 
-    if ( hasMany && hasMany.get( 'length' ) > 0 ) {
-      json[key] = { 'objects': [] };
+    if ( hasMany && hasMany.get( "length" ) > 0 ) {
+      json[key] = { "objects": [] };
 
       // an array is not a relationship, right?
       
