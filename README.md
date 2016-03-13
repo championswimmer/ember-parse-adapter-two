@@ -2,7 +2,7 @@
 
 An [Ember Data](https://github.com/emberjs/data) plugin built to use the [Parse REST API](https://parse.com/docs/rest). This is a full Ember implementation against the Parse REST API without the use of the Parse JavaScript SDK.
 
-If you are not familiarized with the new open source project [parse-server](https://github.com/ParsePlatform/parse-server), you should visit their page first.
+If you are not familiarized with the new open source project [parse-server](https://github.com/ParsePlatform/parse-server), you should visit the project page first.
 
 ## Features
 
@@ -36,8 +36,8 @@ You'll need to use a [Parse.com](https://parse.com) account, or to run [parse-se
 
 * The url of your parse-server (is "https://api.parse.com" on Parse.com)
 * The URL prefix of your Parse API (is "1" on Parse.com)
-* Application ID
-* REST API Key (only if you use a Parse.com account)
+* The ID of your application
+* The REST API Key of your application (only if you use a Parse.com account)
 
 You will need these to configure the ParseAdapter via entries in the `config/environment.js` file:
 
@@ -46,8 +46,8 @@ var ENV = {
   ...
 
   APP: {
-    parseUrl: '<URL OF THE PARSE SERVER HERE>',
-    parseNamespace: '<URL PREFIX OF THE API HERE>',
+    parseUrl: '<THE URL OF THE PARSE SERVER HERE>',
+    parseNamespace: '<THE URL PREFIX OF THE API HERE>',
     applicationId: '<YOUR APP ID HERE>',
     restApiId: '<YOUR REST API KEY HERE>' // (only if you use a Parse.com account)
   }
