@@ -1,5 +1,5 @@
-import DS from 'ember-data';
-import GeoPoint from './geopoint';
+import DS from "ember-data";
+import GeoPoint from "./geopoint";
 
 /*
  * The file transform handles Parse's custom GeoPoint format. For
@@ -16,12 +16,12 @@ import GeoPoint from './geopoint';
  * GeoPoint object. This object should not be changed,
  * instead set a new file object to the property.
  *
- * this.store.find('model').then(function(model){
- *   model.get('someGeo'); // -> GeoPoint object
- *   model.get('someGeo.latitude'); // -> someGeo latitude
+ * this.store.find("model").then(function(model){
+ *   model.get("someGeo"); // -> GeoPoint object
+ *   model.get("someGeo.latitude"); // -> someGeo latitude
  *
  *   var geoPoint = new GeoPoint(lat, lon);
- *   model.set('someGeo', geoPoint);
+ *   model.set("someGeo", geoPoint);
  * });
  *
  * When saving a record, the GeoPoint object
@@ -48,9 +48,9 @@ export default DS.Transform.extend({
     }
 
     return {
-      __type    : 'GeoPoint',
-      latitude  : deserialized.get( 'latitude' ),
-      longitude : deserialized.get( 'longitude' )
+      __type    : "GeoPoint",
+      latitude  : deserialized.get( "latitude" ),
+      longitude : deserialized.get( "longitude" )
     };
   }
 

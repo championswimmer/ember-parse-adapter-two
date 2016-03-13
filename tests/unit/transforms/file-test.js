@@ -1,44 +1,51 @@
-import Ember from 'ember';
-import FileTransform from 'ember-parse-adapter/transforms/file';
-import File from 'ember-parse-adapter/file';
+import Ember from "ember";
+import FileTransform from "ember-parse-adapter/transforms/file";
+import File from "ember-parse-adapter/file";
 
 var transform;
 
-module( 'Unit - transforms:file', {
+module( "Unit - transforms:file", {
   setup: function() {
     transform = FileTransform.create();
   },
   teardown: function() {
-    Ember.run( transform, 'destroy' );
+    Ember.run( transform, "destroy" );
   }
 });
 
-test( 'Serializes', function( assert ) {
+test( "Serializes", function( assert ) {
   var file = File.create({
-      name : 'car',
-      url  : 'http://example.com/car.png'
-    }),
-    data = transform.serialize( file );
+      name : "car",
+      url  : "http://example.com/car.png"
+    });
+  var result = transform.serialize( file );
 
-  assert.equal( data.name, file.get( 'name' ), 'name is preserved' );
-  assert.equal( data.url, file.get( 'url' ), 'url is preserved' );
-  assert.equal( data.__type, 'File', 'has the proper type' );
+  assert.notOk( Ember.isEmpty(result), "get an object" );
+  assert.equal( result.name, file.get( "name" ), "name is preserved" );
+  assert.equal( result.url, file.get( "url" ), "url is preserved" );
+  assert.equal( result.__type, "File", "has the proper type" );
 });
 
-test( 'Deserializes', function( assert ) {
-  var data = {
-    name   : 'Plane',
-    url    : 'http://example.com/plane.png',
-    __type : 'File'
-  },
-  file = transform.deserialize( data );
-
-  assert.ok( file instanceof DS.Transform, 'is a DS.Transform' );
-  assert.equal( file.get( 'name' ), data.name, 'name is preserved' );
-  assert.equal( file.get( 'url' ), data.url, 'url is preserved' );
+test( "Serializes null to null", function( assert ) {
+  var result = transform.serialize( null );
+  assert.ok( Ember.isEmpty(result), "Serialization of null is null" );
 });
 
-test( 'Deserializes null to null', function( assert ) {
-  var file = transform.deserialize( null );
-  assert.ok( file === null, 'Deserialization of null is null' );
+test( "Deserializes", function( assert ) {
+  var file = {
+    name   : "Plane",
+    url    : "http://example.com/plane.png",
+    __type : "File"
+  };
+  var result = transform.deserialize( file );
+
+  assert.notOk( Ember.isEmpty(result), "get an object" );
+  assert.ok( result instanceof DS.Transform, "is a DS.Transform" );
+  assert.equal( result.get( "name" ), file.name, "name is preserved" );
+  assert.equal( result.get( "url" ), file.url, "url is preserved" );
+});
+
+test( "Deserializes null to null", function( assert ) {
+  var result = transform.deserialize( null );
+  assert.ok( Ember.isEmpty(result), "Deserialization of null is null" );
 });

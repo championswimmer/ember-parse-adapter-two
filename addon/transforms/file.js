@@ -1,5 +1,5 @@
-import DS from 'ember-data';
-import File from './file';
+import DS from "ember-data";
+import File from "./file";
 
 /*
  * The file transform handles Parse's custom data format. For
@@ -16,12 +16,12 @@ import File from './file';
  * File object. This object should not be changed,
  * instead set a new file object to the property.
  *
- * this.store.find('model').then(function(model){
- *   model.get('someFile'); // -> File object
- *   model.get('someFile.url'); // -> someFile URL
+ * this.store.find("model").then(function(model){
+ *   model.get("someFile"); // -> File object
+ *   model.get("someFile.url"); // -> someFile URL
  *
- *   var file = new File('foo.jpg', url);
- *   model.set('someFile', file);
+ *   var file = new File("foo.jpg", url);
+ *   model.set("someFile", file);
  * });
  *
  * When saving a record, the File object is likewise
@@ -48,9 +48,9 @@ export default DS.Transform.extend({
     }
 
     return {
-      __type : 'File',
-      name   : deserialized.get( 'name' ),
-      url    : deserialized.get( 'url' )
+      __type : "File",
+      name   : deserialized.get( "name" ),
+      url    : deserialized.get( "url" )
     };
   }
 

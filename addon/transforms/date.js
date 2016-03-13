@@ -1,4 +1,5 @@
-import DS from 'ember-data';
+import Ember from "ember";
+import DS from "ember-data";
 
 /*
  * The date transform handles Parse's custom data format. For
@@ -23,6 +24,10 @@ export default DS.Transform.extend({
       return null;
     }
 
+    if (Ember.typeOf(serialized) === "object") {
+      return new Date( serialized.iso );
+    }
+
     return new Date( serialized );
   },
 
@@ -32,7 +37,7 @@ export default DS.Transform.extend({
     }
 
     return {
-      __type : 'Date',
+      __type : "Date",
       iso    : deserialized.toISOString()
     };
   }
