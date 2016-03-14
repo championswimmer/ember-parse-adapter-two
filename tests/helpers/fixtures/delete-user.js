@@ -1,6 +1,10 @@
 import Ember from 'ember';
 
-export default function deleteUser(apiUrl, applicationId, restApiId, userId, sessionToken) {
+export default function deleteUser(adapter, userId, sessionToken) {
+  var apiUrl = adapter.get("host") + "/" + adapter.get("namespace");
+  var applicationId = adapter.get("applicationId");
+  var restApiId = adapter.get("restApiId");
+  
   var url = apiUrl + "/users/" + userId;
 
   return $.ajax({

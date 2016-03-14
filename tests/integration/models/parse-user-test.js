@@ -22,19 +22,13 @@ module( "Integration - model:parse-user", {
   },
 
   afterEach: function() {
-
-    var applicationId = adapter.get("applicationId");
-    var restApiId = adapter.get("restApiId");
-    var apiUrl = adapter.get("host") + "/" + adapter.get("namespace");
-
     for (var i = 0; i < userIds.length; i++) {
-
       var username = userIds[i].username;
       var password = userIds[i].password;
 
       andThen(function() {
         ParseUser.login( store, {username: username, password: password} ).then( function( user ) {
-          deleteUser(apiUrl, applicationId, restApiId, user.get("id"), user.get("sessionToken"));
+          deleteUser(adapter, user.get("id"), user.get("sessionToken"));
         });
       });
     }

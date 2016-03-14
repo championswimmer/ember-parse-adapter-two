@@ -1,15 +1,16 @@
 import Ember from 'ember';
 
-export default function deleteData(adapter, className, id) {
+export default function getData(adapter, className, query) {
+  var apiUrl = adapter.get("host") + "/" + adapter.get("namespace");
   var applicationId = adapter.get("applicationId");
   var restApiId = adapter.get("restApiId");
-  var apiUrl = adapter.get("host") + "/" + adapter.get("namespace");
 
-  var url = apiUrl + "/classes/" + className + "/" + id;
+  var url = apiUrl + "/classes/" + className;
 
   return $.ajax({
     url: url,
-    type: "DELETE",
+    type: "GET",
+    data: query,
     beforeSend: function(request) {
       request.setRequestHeader("X-Parse-Application-Id", applicationId);
       request.setRequestHeader("X-Parse-REST-API-Key", restApiId);
