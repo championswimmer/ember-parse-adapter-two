@@ -4,6 +4,8 @@ import DS from "ember-data";
 export default DS.RESTAdapter.extend({
 
   defaultSerializer: "-parse",
+  host: "https://api.parse.com", // url of the parse-server (here default to Parse.com)
+  namespace: "1", // url prefix of the API (here default to Parse.com used prefix)
 
   init: function() {
     this._super();
@@ -12,10 +14,6 @@ export default DS.RESTAdapter.extend({
       "X-Parse-REST-API-Key"   : Ember.get(this, "restApiId")
     });
   },
-
-  host: "https://api.parse.com",
-
-  namespace: "1",
 
   pathForType: function(type) {
     if ("parseUser" === type || "parse-user" === type) {
@@ -50,7 +48,7 @@ export default DS.RESTAdapter.extend({
         return [payload];
       }
     }
-    
+
     return [{
       status: "" + status,
       title: "The backend responded with an error",
