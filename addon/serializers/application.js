@@ -13,7 +13,7 @@ export default DS.RESTSerializer.extend({
     namespacedPayload[ Ember.String.pluralize( primaryType.modelName ) ] = payload.results;
 
     if ( payload.hasOwnProperty("count") ) {
-      namespacedPayload.meta = { count: payload.count }
+      namespacedPayload.meta = { count: payload.count };
     }
 
     return this._super( store, primaryType, namespacedPayload );
@@ -76,7 +76,7 @@ export default DS.RESTSerializer.extend({
     }
 
     // https://github.com/emberjs/data/blob/v2.0.0/packages/ember-data/lib/system/coerce-id.js
-    var coerceId = relationshipHash == null || relationshipHash === "" ? null : relationshipHash+"";
+    var coerceId = relationshipHash == null || relationshipHash === "" ? null : relationshipHash + "";
 
     return { id: coerceId, type: relationshipModelName };
   },
@@ -161,7 +161,7 @@ export default DS.RESTSerializer.extend({
 
   serializeHasMany: function( snapshot, json, relationship ) {
     var key   = relationship.key,
-      hasMany = snapshot.hasMany( key ),
+      hasMany = Ember.A(snapshot.hasMany( key )),
       options = relationship.options,
       _this   = this;
 
@@ -221,5 +221,4 @@ export default DS.RESTSerializer.extend({
       json[key] = null;
     }
   }
-
 });
