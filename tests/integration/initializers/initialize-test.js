@@ -6,7 +6,10 @@ var App;
 
 module( "Integration - initializer:initialize", {
   beforeEach: function() {
-    App = startApp();
+    App = startApp({
+      applicationId: '6ZNbAMXjYcg8BLakQ8AVyFWyfA6cTWwPwLb2Gzii',
+      restApiId: 'E2gCZw7WFgz3jfXhxjz9YnconZrbkTDgCUpLFQqy'
+    });
   },
 
   afterEach: function() {
