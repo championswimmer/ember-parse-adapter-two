@@ -1,6 +1,7 @@
 import Ember from "ember";
 import { test } from "ember-qunit";
 import startApp from "../../helpers/start-app";
+import deleteUser from "../../helpers/fixtures/delete-user";
 
 var get = Ember.get;
 var set = Ember.set;
@@ -11,10 +12,7 @@ var userIds;
 
 module( "Integration - model:parse-user", {
   beforeEach: function() {
-    App = startApp({
-      applicationId: "appId",
-      restApiId: "restApiId"
-    });
+    App = startApp();
 		var container = App.__container__;
 
     store = container.lookup( "service:store" );
@@ -25,10 +23,9 @@ module( "Integration - model:parse-user", {
 
   afterEach: function() {
 
-    var adapter = store.adapterFor("application");
     var applicationId = adapter.get("applicationId");
     var restApiId = adapter.get("restApiId");
-    var url = adapter.get("host") + "/parse/users/";
+    var apiUrl = adapter.get("host") + "/" + adapter.get("namespace");
 
     for (var i = 0; i < userIds.length; i++) {
 
@@ -37,17 +34,7 @@ module( "Integration - model:parse-user", {
 
       andThen(function() {
         ParseUser.login( store, {username: username, password: password} ).then( function( user ) {
-          return $.ajax({
-            url: url + user.get("id"),
-            type: "DELETE",
-            beforeSend: function(request) {
-              console.log("HERE: " + user.get("sessionToken"));
-              request.setRequestHeader("X-Parse-Application-Id", applicationId);
-              request.setRequestHeader("X-Parse-REST-API-Key", restApiId);
-              request.setRequestHeader("X-Parse-Session-Token", user.get("sessionToken"));
-              request.setRequestHeader("Content-Type", "application/json");
-            }
-          });
+          deleteUser(apiUrl, applicationId, restApiId, user.get("id"), user.get("sessionToken"));
         });
       });
     }
