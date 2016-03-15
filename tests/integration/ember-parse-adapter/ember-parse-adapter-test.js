@@ -24,7 +24,7 @@ module( "Integration - ember-parse-adapter", {
       position        : DS.attr( "number"),
       firstName       : DS.attr( "string"),
       lastName        : DS.attr( "string"),
-      updateMe        : DS.attr( "boolean", { defaultValue: false } ) // used to test merge operations of the adapter
+      updateMe        : DS.attr( "boolean", { defaultValue: false } ), // used to test merge operations of the adapter
       unreadComments  : DS.hasMany( "comment", { relation: false, array: true, async: true } )
     }));
 
@@ -320,8 +320,39 @@ test( "create", function( assert ) {
 });
 
 
+test( "create - merge", function( assert ) {
+  assert.expect(6);
+
+  // update some data and save them
+  andThen(function() {
+    author1 = createAuthor(0);
+
+    author1.set("firstName", "Jane");
+    author1.set("lastName", "Dawson");
+    author1.set("updateMe", true);
+    author1.save();
+  });
+
+  andThen(function() {
+    authorIds.push(author1.id);
+
+    Ember.run(function() {
+      getData(adapter, "Author", { where: {objectId: author1.id} }).then(function(response) {
+        assert.equal(response.results[0].firstName, "Jane", "author firstName saved");
+        assert.equal(response.results[0].lastName, "Dawson - updated", "author lastName saved");
+        assert.equal(response.results[0].updateMe, false, "author updateMe saved");
+
+        assert.equal(author1.get("firstName"), "Jane", "author firstName merged");
+        assert.equal(author1.get("lastName"), "Dawson - updated", "author lastName merged");
+        assert.equal(author1.get("updateMe"), false, "author updatedMe merged");
+      });
+    });
+  });
+});
+
+
 test( "update", function( assert ) {
-  assert.expect(9);
+  assert.expect(6);
 
   // create the data
   insertData();
@@ -330,7 +361,6 @@ test( "update", function( assert ) {
   andThen(function() {
     author1.set("firstName", "Jane");
     author1.set("lastName", "Dawson");
-    author1.set("updateMe", true);
     author1.save();
 
     post3_author2.set("title", "That's all folks!");
@@ -345,11 +375,7 @@ test( "update", function( assert ) {
     Ember.run(function() {
       getData(adapter, "Author", { where: {objectId: author1.id} }).then(function(response) {
         assert.equal(response.results[0].firstName, "Jane", "author firstName saved");
-        assert.equal(response.results[0].lastName, "Dawson - updated", "author lastName saved");
-
-        assert.equal(author1.get("firstName"), "Jane", "author firstName merged");
-        assert.equal(author1.get("lastName"), "Dawson - updated", "author lastName merged");
-        assert.equal(author1.get("updateMe"), false, "author updatedMe merged");
+        assert.equal(response.results[0].lastName, "Dawson", "author lastName saved");
       });
 
       getData(adapter, "Post", { where: {objectId: post3_author2.id} }).then(function(response) {
@@ -360,6 +386,36 @@ test( "update", function( assert ) {
 
       getData(adapter, "Comment", { where: {objectId: comment6_post5.id} }).then(function(response) {
         assert.equal(response.results[0].content, "Who's there?", "comment saved");
+      });
+    });
+  });
+});
+
+
+test( "update - merge", function( assert ) {
+  assert.expect(6);
+
+  // create the data
+  insertData();
+
+  // update some data and save them
+  andThen(function() {
+    author1.set("firstName", "Jane");
+    author1.set("lastName", "Dawson");
+    author1.set("updateMe", true);
+    author1.save();
+  });
+
+  andThen(function() {
+    Ember.run(function() {
+      getData(adapter, "Author", { where: {objectId: author1.id} }).then(function(response) {
+        assert.equal(response.results[0].firstName, "Jane", "author firstName saved");
+        assert.equal(response.results[0].lastName, "Dawson - updated", "author lastName saved");
+        assert.equal(response.results[0].updateMe, false, "author updateMe saved");
+
+        assert.equal(author1.get("firstName"), "Jane", "author firstName merged");
+        assert.equal(author1.get("lastName"), "Dawson - updated", "author lastName merged");
+        assert.equal(author1.get("updateMe"), false, "author updatedMe merged");
       });
     });
   });
