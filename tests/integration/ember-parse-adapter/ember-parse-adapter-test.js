@@ -422,7 +422,46 @@ test( "update - merge", function( assert ) {
 });
 
 
-QUnit.skip( "delete", function( assert ) {
+test( "delete", function( assert ) {
+  assert.expect(4);
+
+  // create the data
+  insertData();
+
+  // delete some of them, and check that they are no more into the database
+  andThen(function() {
+    var promises = [];
+    promises.push(author2.destroyRecord());
+
+    promises.push(post2_author1.destroyRecord());
+    promises.push(post4_author2.destroyRecord());
+    promises.push(post5_author2.destroyRecord());
+
+    promises.push(comment1_post1.destroyRecord());
+    promises.push(comment3_post3.destroyRecord());
+
+    return Ember.RSVP.all(promises).then(function() {
+
+      getData(adapter, "Author", { order: "position" }).then(function(response) {
+        authors = response.results;
+
+        assert.equal(authors.length, 1, "number of authors into the database");
+        assert.equal(authors[0].objectId, author1.id, "author1 is still into the database");
+      });
+
+      getData(adapter, "Post", { order: "position" }).then(function(response) {
+        authors = response.results;
+
+        assert.equal(authors.length, 2, "number of posts into the database");
+      });
+
+      getData(adapter, "Comment", { order: "position" }).then(function(response) {
+        authors = response.results;
+
+        assert.equal(authors.length, 4, "number of comments into the database");
+      });
+    });
+  });
 });
 
 
