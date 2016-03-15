@@ -24,6 +24,7 @@ module( "Integration - ember-parse-adapter", {
       position        : DS.attr( "number"),
       firstName       : DS.attr( "string"),
       lastName        : DS.attr( "string"),
+      updateMe        : DS.attr( "boolean", { defaultValue: false } ) // used to test merge operations of the adapter
       unreadComments  : DS.hasMany( "comment", { relation: false, array: true, async: true } )
     }));
 
@@ -124,7 +125,7 @@ var createAuthor = function(position) {
 var createPost = function(position, author) {
   var imageFile = File.create({
     name: posts_data[position].image,
-    url: "http://foo.com/" + posts_data[position].image
+    url: "http://localhost:1337/parse/files/appId/" + posts_data[position].image
   });
 
   return store.createRecord("post", {
@@ -319,7 +320,49 @@ test( "create", function( assert ) {
 });
 
 
-QUnit.skip( "update", function( assert ) {
+test( "update", function( assert ) {
+  assert.expect(9);
+
+  // create the data
+  insertData();
+
+  // update some data and save them
+  andThen(function() {
+    author1.set("firstName", "Jane");
+    author1.set("lastName", "Dawson");
+    author1.set("updateMe", true);
+    author1.save();
+
+    post3_author2.set("title", "That's all folks!");
+    post3_author2.set("image.name", "Knock! Knock! Knock!");
+    post3_author2.save();
+
+    comment6_post5.set("content", "Who's there?");
+    comment6_post5.save();
+  });
+
+  andThen(function() {
+    Ember.run(function() {
+      getData(adapter, "Author", { where: {objectId: author1.id} }).then(function(response) {
+        assert.equal(response.results[0].firstName, "Jane", "author firstName saved");
+        assert.equal(response.results[0].lastName, "Dawson - updated", "author lastName saved");
+
+        assert.equal(author1.get("firstName"), "Jane", "author firstName merged");
+        assert.equal(author1.get("lastName"), "Dawson - updated", "author lastName merged");
+        assert.equal(author1.get("updateMe"), false, "author updatedMe merged");
+      });
+
+      getData(adapter, "Post", { where: {objectId: post3_author2.id} }).then(function(response) {
+        assert.equal(response.results[0].title, "That's all folks!", "post title saved");
+        assert.equal(response.results[0].image.name, "Knock! Knock! Knock!", "post image name saved");
+        assert.equal(response.results[0].image.url, "http://localhost:1337/parse/files/appId/Knock!%20Knock!%20Knock!", "post image url saved");
+      });
+
+      getData(adapter, "Comment", { where: {objectId: comment6_post5.id} }).then(function(response) {
+        assert.equal(response.results[0].content, "Who's there?", "comment saved");
+      });
+    });
+  });
 });
 
 
