@@ -577,7 +577,7 @@ test( "belongsTo", function( assert ) {
 
 
 test( "relation", function( assert ) {
-  assert.expect(9);
+  assert.expect(10);
 
   // create the data
   insertData();
@@ -676,14 +676,16 @@ test( "relation", function( assert ) {
     getData(adapter, "Comment", query).then(function(response) {
       var comments = response.results;
       assert.equal(comments.length, 1, "post has just 1 comment now into the database");
-      assert.equal(post2_author1.get("comments.length"), 1, "post has just 1 comment now into its relation");
+      assert.equal(post2_author1.get("comments.length"), 1, "now, post has just 1 comment into its relation");
+
+      assert.equal(comments[0].objectId, new_comment2.id, "second comment still here");
     });
   });
 });
 
 
 test( "array", function( assert ) {
-  assert.expect(10);
+  assert.expect(11);
 
   // create the data
   insertData();
@@ -715,7 +717,7 @@ test( "array", function( assert ) {
     });
   });
 
-  // remove some comments from a post
+  // remove some unerad comments
   andThen(function() {
     comment3_post3.set("removed_", true);
     comment6_post5.set("removed_", true);
@@ -729,6 +731,7 @@ test( "array", function( assert ) {
 
       var unread_comments = response.results[0].unreadComments;
       assert.equal(unread_comments.length, 2, "author has 2 unread comments now");
+      assert.equal(author2.get("unreadComments.length"), 2, "now, author has just 2 comments into its array");
 
       var unread1 = Ember.A(unread_comments).findBy("objectId", comment4_post5.id);
       var unread2 = Ember.A(unread_comments).findBy("objectId", comment5_post5.id);
