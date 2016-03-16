@@ -685,7 +685,7 @@ test( "relation", function( assert ) {
 
 
 test( "array", function( assert ) {
-  assert.expect(11);
+  assert.expect(14);
 
   // create the data
   insertData();
@@ -717,7 +717,8 @@ test( "array", function( assert ) {
     });
   });
 
-  // remove some unerad comments
+
+  // remove some unread comments
   andThen(function() {
     comment3_post3.set("removed_", true);
     comment6_post5.set("removed_", true);
@@ -738,6 +739,23 @@ test( "array", function( assert ) {
 
       assert.notOk(Ember.isNone(unread1), "first unread comment still here");
       assert.notOk(Ember.isNone(unread2), "second unread comment still here");
+    });
+  });
+
+
+  // query by including the objects of the array
+  andThen(function() {
+    var query = {
+      where: {objectId: author1.id},
+      include: "unreadComments"
+    };
+
+    store.query("author", query).then(function(results) {
+      assert.equal(results.get("length"), 1, "query with an include for an array relationship");
+
+      var author = results.objectAt(0);
+      assert.equal(author.id, author1.id, "author retreived");
+      assert.equal(author.get("unreadComments.length"), 1, "unread comments included");
     });
   });
 });
