@@ -192,11 +192,20 @@ export default DS.RESTAdapter.extend({
   *     });
   */
   query: function ( store, type, query ) {
-    if ( query.where && 'string' !== Ember.typeOf( query.where ) ) {
-      query.where = JSON.stringify( query.where );
+    var _query = query;
+
+    if ( _query.where && "string" !== Ember.typeOf( _query.where ) ) {
+      _query.where = JSON.stringify( _query.where );
     }
+    else if (( !_query.where ) && ( !_query.order ) && ( !_query.limit ) &&
+             ( !_query.skip ) && ( !_query.keys ) && ( !_query.include )) {
+
+      // example: store.query("person", { name: "Peter" })
+      _query = { where: JSON.stringify(_query) };
+    }
+
     // Pass to _super()
-    return this._super( store, type, query );
+    return this._super( store, type, _query );
   },
 
   sessionToken: Ember.computed("headers.X-Parse-Session-Token", {

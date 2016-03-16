@@ -465,7 +465,67 @@ test( "delete", function( assert ) {
 });
 
 
-QUnit.skip( "findRecord", function( assert ) {
+test( "findRecord/findAll/query", function( assert ) {
+  assert.expect(16);
+
+  // create the data
+  insertData();
+
+  andThen(function() {
+    Ember.run(function() {
+      // find a record with its id
+      store.findRecord("author", author1.id).then(function(result) {
+        assert.notOk(Ember.isNone(result), "findRecord success");
+        assert.equal(result.id, author1.id, "good author id");
+      });
+
+      // find all the records
+      store.findAll("post").then(function(results) {
+        assert.equal(results.get("length"), 5, "findAll success");
+
+        for (var i = 0; i < postIds.length; i++) {
+          var post = results.findBy("id", postIds[i]);
+          assert.notOk(Ember.isNone(post), postIds[i] + " is here");
+        }
+      });
+
+      // simple query (without where)
+      store.query("author", { firstName: "William" }).then(function(results) {
+        assert.equal(results.get("length"), 1, "simple query result returned");
+        assert.equal(results.objectAt(0).id, author2.id, "simple query result is good");
+      });
+
+      // simple query (with where)
+      var query = {
+        where: { firstName: "William" }
+      };
+
+      store.query("author", query).then(function(results) {
+        assert.equal(results.get("length"), 1, "simple query (with where) result returned");
+        assert.equal(results.objectAt(0).id, author2.id, "simple query (with where) result is good");
+      });
+
+      // complex query, and count
+      query = {
+        where: {
+          "author": {
+            __type: "Pointer",
+            className: "Author",
+            objectId: author2.id
+          }
+        },
+        count: 1
+      };
+
+      store.query("post", query).then(function(results) {
+        assert.equal(results.get("length"), 3, "complex query result returned");
+
+        assert.notOk(Ember.isNone(results.findBy("id", post3_author2.id)), post3_author2.id + " is here");
+        assert.notOk(Ember.isNone(results.findBy("id", post4_author2.id)), post4_author2.id + " is here");
+        assert.notOk(Ember.isNone(results.findBy("id", post5_author2.id)), post5_author2.id + " is here");
+      });
+    });
+  });
 });
 
 
@@ -478,8 +538,4 @@ QUnit.skip( "relation", function( assert ) {
 
 
 QUnit.skip( "array", function( assert ) {
-});
-
-
-QUnit.skip( "count", function( assert ) {
 });
