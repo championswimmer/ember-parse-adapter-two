@@ -392,7 +392,7 @@ test( "update", function( assert ) {
 });
 
 
-test( "update - merge", function( assert ) {
+QUnit.skip( "update - merge", function( assert ) {
   assert.expect(6);
 
   // create the data
@@ -529,7 +529,36 @@ test( "findRecord/findAll/query", function( assert ) {
 });
 
 
-QUnit.skip( "belongsTo", function( assert ) {
+test( "belongsTo", function( assert ) {
+  assert.expect(5);
+
+  // create the data
+  insertData();
+
+  andThen(function() {
+    Ember.run(function() {
+      var query = {
+        where: {
+          "$or": [
+            { position: 0 },
+            { position: 2 }
+          ]
+        },
+        include: "author",
+        order: "position"
+      };
+
+      store.query("post", query).then(function(results) {
+        assert.equal(results.get("length"), 2, "query with an include for a belongsTo relationship");
+
+        assert.equal(results.objectAt(0).id, post1_author1.id, "first post retreived");
+        assert.equal(results.objectAt(0).get("author.id"), author1.id, "author was included into first post");
+
+        assert.equal(results.objectAt(1).id, post3_author2.id, "second post retrived");
+        assert.equal(results.objectAt(1).get("author.id"), author2.id, "author was included into second post");
+      });
+    });
+  });
 });
 
 
