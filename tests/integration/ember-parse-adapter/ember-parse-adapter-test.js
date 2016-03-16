@@ -505,7 +505,7 @@ test( "findRecord/findAll/query", function( assert ) {
         assert.equal(results.objectAt(0).id, author2.id, "simple query (with where) result is good");
       });
 
-      // complex query, and count
+      // complex query, with limit, count and order
       query = {
         where: {
           "author": {
@@ -514,13 +514,15 @@ test( "findRecord/findAll/query", function( assert ) {
             objectId: author2.id
           }
         },
+        order: "-position",
+        limit: 2,
         count: 1
       };
 
       store.query("post", query).then(function(results) {
-        assert.equal(results.get("length"), 3, "complex query result returned");
+        assert.equal(results.get("length"), 2, "complex query result returned with limit to 2");
+        assert.equal(results.get("meta.count"), 3, "count meta data is here");
 
-        assert.notOk(Ember.isNone(results.findBy("id", post3_author2.id)), post3_author2.id + " is here");
         assert.notOk(Ember.isNone(results.findBy("id", post4_author2.id)), post4_author2.id + " is here");
         assert.notOk(Ember.isNone(results.findBy("id", post5_author2.id)), post5_author2.id + " is here");
       });
@@ -530,41 +532,209 @@ test( "findRecord/findAll/query", function( assert ) {
 
 
 test( "belongsTo", function( assert ) {
-  assert.expect(5);
+  assert.expect(7);
 
   // create the data
   insertData();
 
+  // query by including belongsTo relation
   andThen(function() {
-    Ember.run(function() {
-      var query = {
-        where: {
-          "$or": [
-            { position: 0 },
-            { position: 2 }
-          ]
-        },
-        include: "author",
-        order: "position"
-      };
+    var query = {
+      where: {
+        "$or": [
+          { position: 0 },
+          { position: 2 }
+        ]
+      },
+      include: "author",
+      order: "position"
+    };
 
-      store.query("post", query).then(function(results) {
-        assert.equal(results.get("length"), 2, "query with an include for a belongsTo relationship");
+    store.query("post", query).then(function(results) {
+      assert.equal(results.get("length"), 2, "query with an include for a belongsTo relationship");
 
-        assert.equal(results.objectAt(0).id, post1_author1.id, "first post retreived");
-        assert.equal(results.objectAt(0).get("author.id"), author1.id, "author was included into first post");
+      assert.equal(results.objectAt(0).id, post1_author1.id, "first post retreived");
+      assert.equal(results.objectAt(0).get("author.id"), author1.id, "author was included into first post");
 
-        assert.equal(results.objectAt(1).id, post3_author2.id, "second post retrived");
-        assert.equal(results.objectAt(1).get("author.id"), author2.id, "author was included into second post");
-      });
+      assert.equal(results.objectAt(1).id, post3_author2.id, "second post retrived");
+      assert.equal(results.objectAt(1).get("author.id"), author2.id, "author was included into second post");
+    });
+  });
+
+  // remove the belongsTo relation
+  andThen(function() {
+    post1_author1.set("author", null);
+    post1_author1.save();
+  });
+
+  andThen(function() {
+    getData(adapter, "Post", {where: {objectId: post1_author1.id} }).then(function(response) {
+      assert.equal(response.results.length, 1, "query to get the post infos");
+      assert.equal(response.results[0].author, undefined, "the author should have been removed");
     });
   });
 });
 
 
-QUnit.skip( "relation", function( assert ) {
+test( "relation", function( assert ) {
+  assert.expect(9);
+
+  // create the data
+  insertData();
+
+  var new_comment1, new_comment2, new_comment3;
+
+  // add some comments to a post
+  andThen(function() {
+    Ember.run(function() {
+      new_comment1 = store.createRecord("comment", {
+        position: 100,
+        content: "Dummy comment 1"
+      });
+
+      new_comment2 = store.createRecord("comment", {
+        position: 100,
+        content: "Dummy comment 1"
+      });
+
+      new_comment3 = store.createRecord("comment", {
+        position: 100,
+        content: "Dummy comment 1"
+      });
+
+      new_comment1.save();
+      new_comment2.save();
+      new_comment3.save();
+    });
+  });
+
+  andThen(function() {
+    commentIds.push(new_comment1.id);
+    commentIds.push(new_comment2.id);
+    commentIds.push(new_comment3.id);
+
+    post2_author1.get("comments").pushObject(new_comment1);
+    post2_author1.get("comments").pushObject(new_comment2);
+    post2_author1.get("comments").pushObject(new_comment3);
+
+    post2_author1.save();
+  });
+
+  andThen(function() {
+    var query = {
+      where: {
+        $relatedTo: {
+          object: {
+            __type: "Pointer",
+            className: "Post",
+            objectId: post2_author1.id
+          },
+          key: "comments"
+        }
+      }
+    };
+    getData(adapter, "Comment", query).then(function(response) {
+
+      var comments = response.results;
+      assert.equal(comments.length, 3, "post has three comments now");
+
+      var comment1 = Ember.A(comments).findBy("objectId", new_comment1.id);
+      var comment2 = Ember.A(comments).findBy("objectId", new_comment2.id);
+      var comment3 = Ember.A(comments).findBy("objectId", new_comment3.id);
+
+      assert.notOk(Ember.isNone(comment1), "first comment is part of the relation");
+      assert.notOk(Ember.isNone(comment2), "second comment is part of the relation");
+      assert.notOk(Ember.isNone(comment3), "third comment is part of the relation");
+
+      assert.equal(comment1.content, new_comment1.get("content"), "check first comment content");
+      assert.equal(comment2.content, new_comment2.get("content"), "check second comment content");
+      assert.equal(comment3.content, new_comment3.get("content"), "check three comment content");
+    });
+  });
+
+  // remove some comments from a post
+  andThen(function() {
+    new_comment1.set("removed_", true);
+    new_comment3.set("removed_", true);
+    post2_author1.save();
+  });
+
+  andThen(function() {
+    var query = {
+      where: {
+        $relatedTo: {
+          object: {
+            __type: "Pointer",
+            className: "Post",
+            objectId: post2_author1.id
+          },
+          key: "comments"
+        }
+      }
+    };
+
+    getData(adapter, "Comment", query).then(function(response) {
+      var comments = response.results;
+      assert.equal(comments.length, 1, "post has just 1 comment now into the database");
+      assert.equal(post2_author1.get("comments.length"), 1, "post has just 1 comment now into its relation");
+    });
+  });
 });
 
 
-QUnit.skip( "array", function( assert ) {
+test( "array", function( assert ) {
+  assert.expect(10);
+
+  // create the data
+  insertData();
+
+  // add some unread comments to an author
+  andThen(function() {
+    author2.get("unreadComments").pushObject(comment4_post5);
+    author2.get("unreadComments").pushObject(comment5_post5);
+
+    author2.save();
+  });
+
+  andThen(function() {
+    getData(adapter, "Author", {where: {objectId: author2.id} }).then(function(response) {
+      assert.equal(response.results.length, 1, "get the author from the database");
+
+      var unread_comments = response.results[0].unreadComments;
+      assert.equal(unread_comments.length, 4, "author has 4 unread comments now");
+
+      var unread1 = Ember.A(unread_comments).findBy("objectId", comment3_post3.id);
+      var unread2 = Ember.A(unread_comments).findBy("objectId", comment4_post5.id);
+      var unread3 = Ember.A(unread_comments).findBy("objectId", comment5_post5.id);
+      var unread4 = Ember.A(unread_comments).findBy("objectId", comment6_post5.id);
+
+      assert.notOk(Ember.isNone(unread1), "first unread comment found");
+      assert.notOk(Ember.isNone(unread2), "second unread comment found");
+      assert.notOk(Ember.isNone(unread3), "third unread comment found");
+      assert.notOk(Ember.isNone(unread4), "fourth unread comment found");
+    });
+  });
+
+  // remove some comments from a post
+  andThen(function() {
+    comment3_post3.set("removed_", true);
+    comment6_post5.set("removed_", true);
+
+    author2.save();
+  });
+
+  andThen(function() {
+    getData(adapter, "Author", {where: {objectId: author2.id} }).then(function(response) {
+      assert.equal(response.results.length, 1, "get the author from the database");
+
+      var unread_comments = response.results[0].unreadComments;
+      assert.equal(unread_comments.length, 2, "author has 2 unread comments now");
+
+      var unread1 = Ember.A(unread_comments).findBy("objectId", comment4_post5.id);
+      var unread2 = Ember.A(unread_comments).findBy("objectId", comment5_post5.id);
+
+      assert.notOk(Ember.isNone(unread1), "first unread comment still here");
+      assert.notOk(Ember.isNone(unread2), "second unread comment still here");
+    });
+  });
 });
