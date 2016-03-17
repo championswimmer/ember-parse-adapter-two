@@ -25,6 +25,7 @@ module( "Integration - ember-parse-adapter", {
       firstName       : DS.attr( "string"),
       lastName        : DS.attr( "string"),
       updateMe        : DS.attr( "boolean", { defaultValue: false } ), // used to test merge operations of the adapter
+      errorMe         : DS.attr( "number", { defaultValue: 0 } ), // used to test error on operations on the adapter
       unreadComments  : DS.hasMany( "comment", { relation: false, array: true, async: true } )
     }));
 
@@ -756,6 +757,26 @@ test( "array", function( assert ) {
       var author = results.objectAt(0);
       assert.equal(author.id, author1.id, "author retreived");
       assert.equal(author.get("unreadComments.length"), 1, "unread comments included");
+    });
+  });
+});
+
+
+test( "Save error", function( assert ) {
+  assert.expect(3);
+
+  andThen(function() {
+    Ember.run(function() {
+      author1 = createAuthor(0);
+      author1.set("errorMe", 223);
+
+      author1.save().catch(function(error) {
+        assert.ok(error && error.error, "custom error returned");
+
+        var error_obj = JSON.parse(error.error);
+        assert.ok(error_obj.code, 223, "error code is good");
+        assert.ok(error_obj.message, "I am raised", "error message is good");
+      });
     });
   });
 });
