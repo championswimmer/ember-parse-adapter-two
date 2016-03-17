@@ -161,6 +161,9 @@ export default DS.RESTSerializer.extend({
         "objectId"  : belongsToId
       };
     }
+    else {
+      json[key] = {"__op": "Delete"};
+    }
   },
 
   parseClassName: function(key) {
