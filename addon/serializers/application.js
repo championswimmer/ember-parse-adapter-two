@@ -64,13 +64,25 @@ export default DS.RESTSerializer.extend({
       is polymorphic. It could however also be embedded resources that the
       EmbeddedRecordsMixin has be able to process.
     */
-    if (Ember.typeOf(relationshipHash) === 'object') {
-      if (relationshipHash.__type && relationshipHash.__type === 'Pointer') {
-        relationshipHash.id = relationshipHash.objectId;
-        relationshipHash.type = relationshipModelName;
-        delete relationshipHash.objectId;
-        delete relationshipHash.__type;
-        delete relationshipHash.className;
+    if (Ember.typeOf(relationshipHash) === "object") {
+      if (relationshipHash.__type) {
+        if (relationshipHash.__type === "Pointer") {
+          return { id: relationshipHash.objectId, type: relationshipModelName };
+        }
+        else if (relationshipHash.__type === "Object") {
+          // The query was made with the "include" parameter.
+          // So, clean the included object and add it to the store.
+          var store = this.get("store");
+          var model = store.modelFor(relationshipModelName);
+          var serialized = this.normalize(model, relationshipHash);
+          store.push(serialized);
+
+          return { id: relationshipHash.objectId, type: relationshipModelName };
+        }
+      }
+      // {"__op": "Delete"} due to a previous delete operation (ignore it)
+      else if (relationshipHash.__op) {
+        return null;
       }
       return relationshipHash;
     }
