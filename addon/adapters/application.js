@@ -44,16 +44,9 @@ export default DS.RESTAdapter.extend({
       if (payload.errors) {
         return payload.errors;
       }
-      else {
-        return [payload];
-      }
     }
 
-    return [{
-      status: "" + status,
-      title: "The backend responded with an error",
-      detail: "" + payload
-    }];
+    return [payload];
   },
 
   /**
