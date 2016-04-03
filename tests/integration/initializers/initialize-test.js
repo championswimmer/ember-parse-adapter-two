@@ -7,6 +7,8 @@ var App;
 module( "Integration - initializer:initialize", {
   beforeEach: function() {
     App = startApp({
+      parseUrl: 'http://localhost:1337',
+      parseNamespace: 'parse',
       applicationId: '6ZNbAMXjYcg8BLakQ8AVyFWyfA6cTWwPwLb2Gzii',
       restApiId: 'E2gCZw7WFgz3jfXhxjz9YnconZrbkTDgCUpLFQqy'
     });
