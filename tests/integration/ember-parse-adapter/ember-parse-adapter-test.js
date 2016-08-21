@@ -393,7 +393,7 @@ test( "update", function( assert ) {
 });
 
 
-QUnit.skip( "update - merge", function( assert ) {
+test( "update - merge", function( assert ) {
   assert.expect(6);
 
   // create the data
@@ -589,18 +589,18 @@ test( "relation", function( assert ) {
   andThen(function() {
     Ember.run(function() {
       new_comment1 = store.createRecord("comment", {
-        position: 100,
+        position: 101,
         content: "Dummy comment 1"
       });
 
       new_comment2 = store.createRecord("comment", {
-        position: 100,
-        content: "Dummy comment 1"
+        position: 102,
+        content: "Dummy comment 2"
       });
 
       new_comment3 = store.createRecord("comment", {
-        position: 100,
-        content: "Dummy comment 1"
+        position: 103,
+        content: "Dummy comment 3"
       });
 
       new_comment1.save();
