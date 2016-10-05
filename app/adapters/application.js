@@ -1,4 +1,4 @@
-import adapter from "ember-parse-adapter/adapters/application";
+import adapter from "ember-parse-adapter-two/adapters/application";
 
 /** @module adapters/application */
 export default adapter;

@@ -1,6 +1,6 @@
 import Ember from "ember";
-import GeoPointTransform from "ember-parse-adapter/transforms/geopoint";
-import GeoPoint from "ember-parse-adapter/geopoint";
+import GeoPointTransform from "ember-parse-adapter-two/transforms/geopoint";
+import GeoPoint from "ember-parse-adapter-two/geopoint";
 
 var transform;
 

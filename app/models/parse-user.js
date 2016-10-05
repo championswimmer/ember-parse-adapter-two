@@ -1,4 +1,4 @@
-import ParseUser from "ember-parse-adapter/models/parse-user";
+import ParseUser from "ember-parse-adapter-two/models/parse-user";
 
 /** @module parse-user */
 export default ParseUser;

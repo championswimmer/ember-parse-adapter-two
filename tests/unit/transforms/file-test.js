@@ -1,6 +1,6 @@
 import Ember from "ember";
-import FileTransform from "ember-parse-adapter/transforms/file";
-import File from "ember-parse-adapter/file";
+import FileTransform from "ember-parse-adapter-two/transforms/file";
+import File from "ember-parse-adapter-two/file";
 
 var transform;
 

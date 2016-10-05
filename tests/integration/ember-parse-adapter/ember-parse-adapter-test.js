@@ -3,7 +3,7 @@ import { test } from "ember-qunit";
 import startApp from "../../helpers/start-app";
 import deleteData from "../../helpers/fixtures/delete-data";
 import getData from "../../helpers/fixtures/get-data";
-import File from "ember-parse-adapter/file";
+import File from "ember-parse-adapter-two/file";
 
 var App;
 var store;
@@ -12,7 +12,7 @@ var authorIds;
 var postIds;
 var commentIds;
 
-module( "Integration - ember-parse-adapter", {
+module( "Integration - ember-parse-adapter-two", {
   beforeEach: function() {
     App = startApp();
     var container = App.__container__;

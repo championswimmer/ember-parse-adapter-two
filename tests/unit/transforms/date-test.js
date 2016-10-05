@@ -1,5 +1,5 @@
 import Ember from "ember";
-import DateTransform from "ember-parse-adapter/transforms/date";
+import DateTransform from "ember-parse-adapter-two/transforms/date";
 
 var transform;
 

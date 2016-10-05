@@ -1,4 +1,4 @@
-import file from "ember-parse-adapter/file";
+import file from "ember-parse-adapter-two/file";
 
 /** @module file */
 export default file;

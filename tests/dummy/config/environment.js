@@ -16,11 +16,12 @@ module.exports = function(environment) {
     APP: {
       // Here you can pass flags/options to your application instance
       // when it is created
-      applicationId: 'Hf7dgrv4WPBcJYUsLgDMZCwKxf3hdbAc1nnSsVza',
-      restApiId: 'BH0IoMxroXSVU3GTMQTVaM4BXjvdX7lKtFujgvzO'
+      parseUrl: 'https://parseapi.back4app.com/',
+      applicationId: 'N24s1gF1OERycDFPyJefyqbfh173YpUty0MLMG1v',
+      restApiId: '4loq0IfxpqYcBulQkBRO3NBshCOPTV8O1srZitrh'
     }
   };
-  
+
   ENV.contentSecurityPolicy = {
     'default-src': "'none'",
     'script-src': "'self' http://cdnjs.cloudflare.com",
